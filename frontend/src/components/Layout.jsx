@@ -18,7 +18,7 @@ export function Layout({ children }) {
       <aside className="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white flex flex-col shadow-xl">
         <div className="flex items-center gap-3 p-6 border-b border-slate-800">
           <ShieldCheck className="h-8 w-8 text-blue-400" />
-          <span className="text-2xl font-bold tracking-tight text-white">IPAM</span>
+          <span className="text-2xl font-bold tracking-tight text-white">EZ IPAM</span>
         </div>
         
         <nav className="flex-1 py-6 px-4 space-y-1">
