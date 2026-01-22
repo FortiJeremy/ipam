@@ -150,6 +150,7 @@ cython_debug/
 
 # VS Code
 .vscode/
+*.code-workspace
 
 # Node.js
 node_modules/
