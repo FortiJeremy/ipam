@@ -7,7 +7,7 @@ services:
     #   - ./backend:/app
     #   - /app/.venv # Don't sync venv from host
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       - DATABASE_URL=sqlite:///./ipam.db
     cap_add:
