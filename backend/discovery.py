@@ -4,6 +4,8 @@ import socket
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from scapy.all import srp, Ether, ARP, conf, IP, ICMP, sr1, sr
+import dns.resolver
+import dns.reversename
 import models
 import schemas
 from database import SessionLocal
@@ -26,12 +28,30 @@ def ping_ip(ip_address: str, timeout: int = 1):
 def resolve_hostname(ip_address: str, dns_server: str = None):
     """
     Try to resolve hostname via Reverse DNS.
+    Uses dnspython for custom server support and more reliable resolution.
     """
     try:
-        # If a custom DNS server is provided, we'd ideally use dnspython here.
-        # For now, using standard socket resolution which uses system resolver.
-        return socket.gethostbyaddr(ip_address)[0]
-    except (socket.herror, socket.gaierror, IndexError):
+        addr = dns.reversename.from_address(ip_address)
+        resolver = dns.resolver.Resolver()
+        if dns_server:
+            resolver.nameservers = [dns_server]
+        
+        # Set a short timeout for background scans
+        resolver.lifetime = 1.0
+        resolver.timeout = 1.0
+        
+        answer = resolver.resolve(addr, "PTR")
+        if answer:
+            # Get the hostname and strip trailing dot
+            return str(answer[0]).rstrip('.')
+        return None
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.resolver.Timeout, Exception) as e:
+        # Fallback to system resolver if custom server isn't specified or fails
+        if not dns_server:
+            try:
+                return socket.gethostbyaddr(ip_address)[0]
+            except (socket.herror, socket.gaierror, IndexError):
+                return None
         return None
 
 def scan_subnet(network_prefix: str, arp_enabled: bool = True, icmp_enabled: bool = True):

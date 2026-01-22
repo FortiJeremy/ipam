@@ -13,4 +13,5 @@ dependencies = [
     "scapy>=2.7.0",
     "sqlalchemy>=2.0.46",
     "uvicorn>=0.40.0",
+    "dnspython>=2.6.1",
 ]
