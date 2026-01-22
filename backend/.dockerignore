@@ -1,0 +1,17 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.venv
+venv
+.env
+ipam.db
+ipam.db-journal
+.pytest_cache
+.mypy_cache
+.vscode
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+nmap-*.xml

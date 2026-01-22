@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    # volumes:
+    #   - ./backend:/app
+    #   - /app/.venv # Don't sync venv from host
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./ipam.db
+    cap_add:
+      - NET_ADMIN
+    # command: sh -c "uv run alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    # volumes:
+    #   - ./frontend:/app
+    #   - /app/node_modules # Don't sync node_modules from host
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
