@@ -33,26 +33,44 @@ def resolve_hostname(ip_address: str, dns_server: str = None):
     try:
         addr = dns.reversename.from_address(ip_address)
         resolver = dns.resolver.Resolver()
+        
         if dns_server:
-            resolver.nameservers = [dns_server]
+            # Multi-server support if comma separated
+            servers = [s.strip() for s in dns_server.split(",") if s.strip()]
+            if servers:
+                resolver.nameservers = servers
+                # Disable system config if we have custom servers
+                resolver.use_search_list = False
         
-        # Set a short timeout for background scans
-        resolver.lifetime = 1.0
-        resolver.timeout = 1.0
+        # Set realistic timeouts for local/VPN DNS
+        resolver.lifetime = 2.0
+        resolver.timeout = 2.0
         
+        logger.debug(f"Attempting DNS PTR lookup for {ip_address} using {resolver.nameservers}")
         answer = resolver.resolve(addr, "PTR")
         if answer:
-            # Get the hostname and strip trailing dot
-            return str(answer[0]).rstrip('.')
+            hostname = str(answer[0]).rstrip('.')
+            logger.info(f"Resolved {ip_address} to {hostname}")
+            return hostname
         return None
-    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.resolver.Timeout, Exception) as e:
-        # Fallback to system resolver if custom server isn't specified or fails
-        if not dns_server:
-            try:
-                return socket.gethostbyaddr(ip_address)[0]
-            except (socket.herror, socket.gaierror, IndexError):
-                return None
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+        logger.debug(f"No PTR record for {ip_address} on custom server")
+        # Try system fallback if custom failed
+        try:
+            hostname, _, _ = socket.gethostbyaddr(ip_address)
+            return hostname
+        except (socket.herror, socket.gaierror, IndexError):
+            return None
+    except dns.resolver.Timeout:
+        logger.warning(f"DNS Timeout resolving {ip_address} via {dns_server or 'system'}")
         return None
+    except Exception as e:
+        logger.error(f"Unexpected DNS error for {ip_address}: {type(e).__name__}: {e}")
+        try:
+            hostname, _, _ = socket.gethostbyaddr(ip_address)
+            return hostname
+        except:
+            return None
 
 def scan_subnet(network_prefix: str, arp_enabled: bool = True, icmp_enabled: bool = True):
     """
@@ -85,10 +103,11 @@ def scan_subnet(network_prefix: str, arp_enabled: bool = True, icmp_enabled: boo
 
     return [{"ip": ip, "mac": mac} for ip, mac in discovered_hosts.items()]
 
-def run_health_checks():
+def run_health_checks(dns_enabled: bool = False, dns_server: str = None):
     """
     Iterates through all registered IP addresses and pings them.
     Updates the healthcheck_status and last_seen in the database.
+    Also updates hostname if DNS is enabled.
     """
     db = SessionLocal()
     try:
@@ -97,8 +116,16 @@ def run_health_checks():
         for ip_record in ips:
             is_alive = ping_ip(ip_record.address)
             ip_record.healthcheck_status = "Online" if is_alive else "Offline"
+            
             if is_alive:
                 ip_record.last_seen = datetime.now(timezone.utc)
+            
+            # Attempt to refresh hostname if DNS is enabled, even if host is offline
+            if dns_enabled:
+                new_hostname = resolve_hostname(ip_record.address, dns_server)
+                if new_hostname:
+                    ip_record.hostname = new_hostname
+            
             db.commit()
     except Exception as e:
         logger.error(f"Health check task failed: {e}")
@@ -120,6 +147,8 @@ def scan_subnet_range(subnet_id: int, arp_enabled: bool = True, icmp_enabled: bo
 
         network = f"{subnet.network_address}/{subnet.prefix_length}"
         results = scan_subnet(network, arp_enabled, icmp_enabled)
+        
+        logger.info(f"Scan found {len(results)} active hosts in {network}")
         
         for res in results:
             ip_addr = res["ip"]
@@ -187,7 +216,7 @@ def start_brain_loop():
     logger.info("The Brain is starting...")
     while True:
         db = SessionLocal()
-        interval = 15 # default
+        interval = 5 # default 5 minutes
         try:
             from crud import get_settings
             settings = get_settings(db)
@@ -198,7 +227,7 @@ def start_brain_loop():
             dns_server = settings.get("dns_server")
             
             logger.info(f"The Brain is starting a new cycle (ARP: {arp_enabled}, ICMP: {icmp_enabled}, DNS: {dns_enabled})")
-            run_health_checks()
+            run_health_checks(dns_enabled, dns_server)
             run_discovery(arp_enabled, icmp_enabled, dns_enabled, dns_server)
         except Exception as e:
             logger.error(f"Error in brain loop: {e}")

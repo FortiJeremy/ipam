@@ -205,7 +205,7 @@ def get_settings(db: Session):
     settings = db.query(models.Setting).all()
     # Map to useful dict
     result = {
-        "discovery_interval": 15,
+        "discovery_interval": 5,
         "arp_enabled": True,
         "icmp_enabled": True,
         "dns_enabled": False,
