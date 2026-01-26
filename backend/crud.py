@@ -77,9 +77,9 @@ def get_devices(db: Session, skip: int = 0, limit: int = 100):
         joinedload(models.Device.ip_addresses).joinedload(models.IPAddress.subnet)
     ).offset(skip).limit(limit).all()
 
-def _link_ip_to_device(db: Session, db_device: models.Device, ip_addr: str):
+def link_ip_to_device(db: Session, db_device: models.Device, ip_addr: str):
     if not ip_addr:
-        return
+        return None
         
     # Link existing IP to the device
     db_ip = db.query(models.IPAddress).filter(models.IPAddress.address == ip_addr).first()
@@ -107,6 +107,9 @@ def _link_ip_to_device(db: Session, db_device: models.Device, ip_addr: str):
         db_ip.status = models.IPStatus.ALLOCATED
     
     db.commit()
+    if db_ip:
+        db.refresh(db_ip)
+    return db_ip
 
 def create_device(db: Session, device: schemas.DeviceCreate):
     device_data = device.model_dump()
@@ -118,7 +121,7 @@ def create_device(db: Session, device: schemas.DeviceCreate):
     db.refresh(db_device)
     
     if ip_addr:
-        _link_ip_to_device(db, db_device, ip_addr)
+        link_ip_to_device(db, db_device, ip_addr)
             
     return db_device
 
@@ -140,7 +143,7 @@ def update_device(db: Session, device_id: int, device: schemas.DeviceUpdate):
             ).first()
             
             if not existing_ip:
-                _link_ip_to_device(db, db_device, ip_addr)
+                link_ip_to_device(db, db_device, ip_addr)
         
         db.refresh(db_device)
     return db_device

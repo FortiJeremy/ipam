@@ -98,6 +98,9 @@ class IPAddress(IPAddressBase):
 
 class DeviceWithIPs(Device):
     ip_addresses: List[IPAddress] = []
+
+class IPAssignment(BaseModel):
+    ip_address: str
     model_config = ConfigDict(from_attributes=True)
 
 class SettingBase(BaseModel):

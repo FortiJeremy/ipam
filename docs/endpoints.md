@@ -42,7 +42,9 @@ Manage physical or virtual hosts.
 | `GET` | `/devices/` | List all devices. |
 | `POST` | `/devices/` | Register a new device. |
 | `GET` | `/devices/{id}` | Retrieve specific device details. |
+| `PUT` | `/devices/{id}` | Update a device record. |
 | `DELETE` | `/devices/{id}` | Remove a device record. |
+| `POST` | `/devices/{id}/assign` | Assign an IP address to a device. |
 
 ### Device Schema (Simplified)
 - `hostname`: (string) e.g., "nas-01"

@@ -35,6 +35,8 @@ A physical or virtual host.
 
 ## Relationships
 - A **Subnet** contains many **IP Addresses**.
-- A **Device** can have one or more **IP Addresses**.
+- An **IP Address** belongs to exactly one **Subnet**.
+- A **Device** can have many **IP Addresses**.
+- An **IP Address** can optionally be assigned to one **Device**.
 - A **Device** belongs to a **Subnet** through its IP assignments.
-- A **Device** may belong to multiple subnets.
+- A **Device** may belong to multiple subnets simultaneously.

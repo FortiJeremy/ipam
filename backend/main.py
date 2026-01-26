@@ -111,6 +111,18 @@ def delete_device(device_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Device not found")
     return {"message": "Device deleted"}
 
+@app.post("/devices/{device_id}/assign", response_model=schemas.IPAddress)
+def assign_ip_to_device(device_id: int, assignment: schemas.IPAssignment, db: Session = Depends(get_db)):
+    db_device = crud.get_device(db, device_id=device_id)
+    if not db_device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    
+    db_ip = crud.link_ip_to_device(db, db_device, assignment.ip_address)
+    if not db_ip:
+        raise HTTPException(status_code=400, detail="Could not assign IP. Ensure it belongs to a known subnet.")
+    
+    return db_ip
+
 # IP Address Endpoints
 @app.post("/ips/", response_model=schemas.IPAddress)
 def create_ip_address(ip: schemas.IPAddressCreate, db: Session = Depends(get_db)):
