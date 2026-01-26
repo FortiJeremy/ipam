@@ -13,7 +13,7 @@ from discovery import start_brain_loop
 # Create tables (Alembic should handle this in production, but good for quick dev)
 # models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="IPAM API", version="0.1.0")
+app = FastAPI(title="IPAM API", version="0.2.0")
 
 # Start discovery background thread
 @app.on_event("startup")
