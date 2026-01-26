@@ -25,12 +25,12 @@ export function Modal({ isOpen, onClose, title, children, footer }) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200 border dark:border-slate-700">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-slate-700">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h3>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -41,7 +41,7 @@ export function Modal({ isOpen, onClose, title, children, footer }) {
         </div>
 
         {footer && (
-          <div className="p-6 bg-gray-50 flex justify-end gap-3">
+          <div className="p-6 bg-gray-50 dark:bg-slate-900/50 flex justify-end gap-3 border-t dark:border-slate-700">
             {footer}
           </div>
         )}

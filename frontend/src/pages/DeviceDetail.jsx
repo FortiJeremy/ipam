@@ -137,22 +137,22 @@ export function DeviceDetail() {
       <div className="flex items-center gap-4">
         <button 
           onClick={() => navigate('/devices')}
-          className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-gray-200 transition-all"
+          className="p-2 hover:bg-white dark:hover:bg-slate-800 rounded-lg border border-transparent hover:border-gray-200 dark:hover:border-slate-700 transition-all"
         >
-          <ArrowLeft className="h-5 w-5 text-gray-600" />
+          <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Server className="h-6 w-6 text-blue-600" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Server className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             {device?.hostname}
           </h1>
-          <p className="text-gray-500">{device?.device_type} • {device?.manufacturer} {device?.model}</p>
+          <p className="text-gray-500 dark:text-gray-400">{device?.device_type} • {device?.manufacturer} {device?.model}</p>
         </div>
         <div className="flex-1"></div>
         <div className="flex items-center gap-2">
           <button 
             onClick={fetchData}
-            className="flex items-center gap-2 text-gray-600 px-4 py-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 px-4 py-2 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-colors border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
           </button>
@@ -167,26 +167,26 @@ export function DeviceDetail() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm space-y-4">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
               <Info className="h-4 w-4" /> Device Details
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Manufacturer</span>
-                <span className="text-sm font-medium">{device?.manufacturer || '-'}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Manufacturer</span>
+                <span className="text-sm font-medium dark:text-slate-200">{device?.manufacturer || '-'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Model</span>
-                <span className="text-sm font-medium">{device?.model || '-'}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Model</span>
+                <span className="text-sm font-medium dark:text-slate-200">{device?.model || '-'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Type</span>
-                <span className="text-sm font-medium">{device?.device_type || '-'}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Type</span>
+                <span className="text-sm font-medium dark:text-slate-200">{device?.device_type || '-'}</span>
               </div>
             </div>
             {device?.tags && (
-              <div className="pt-4 border-t border-gray-100">
+              <div className="pt-4 border-t border-gray-100 dark:border-slate-700 transition-colors duration-200">
                 <span className="text-xs font-semibold text-gray-400 uppercase block mb-2">Tags</span>
                 <div className="flex gap-1 flex-wrap">
                   {device.tags.split(',').map((tag, i) => (
@@ -197,20 +197,20 @@ export function DeviceDetail() {
             )}
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm transition-colors duration-200">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
               <Activity className="h-4 w-4" /> Notes
             </h3>
-            <p className="text-sm text-gray-600 whitespace-pre-wrap">
+            <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
               {device?.notes || 'No notes available for this device.'}
             </p>
           </div>
         </div>
 
         <div className="md:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden transition-colors duration-200">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center transition-colors duration-200">
+              <h3 className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                 <Hash className="h-5 w-5 text-blue-500" />
                 IP Address Assignments
               </h3>

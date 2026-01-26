@@ -120,7 +120,7 @@ export function LiveView() {
     {
       header: 'Resolved Name',
       cell: (row) => (
-        <span className="text-sm text-gray-600 italic">
+        <span className="text-sm text-gray-600 dark:text-gray-400 italic">
           {row.hostname || '-'}
         </span>
       )
@@ -171,15 +171,15 @@ export function LiveView() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
             <Activity className="h-6 w-6 text-green-500" />
             Live Discovery
           </h1>
-          <p className="text-gray-500">Real-time view of detected hosts on the network</p>
+          <p className="text-gray-500 dark:text-gray-400">Real-time view of detected hosts on the network</p>
         </div>
         
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-          <label className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-white px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
             <input
               type="checkbox"
               className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
@@ -194,7 +194,7 @@ export function LiveView() {
             <input
               type="text"
               placeholder="Search IP or MAC..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none dark:text-white"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             />
@@ -208,16 +208,16 @@ export function LiveView() {
             key={subnet.id} 
             onClick={() => setSelectedSubnetId(selectedSubnetId === subnet.id ? null : subnet.id)}
             className={clsx(
-              "bg-white p-4 rounded-xl border-2 text-left transition-all duration-200",
+              "p-4 rounded-xl border-2 text-left transition-all duration-200",
               selectedSubnetId === subnet.id 
-                ? "border-blue-500 ring-2 ring-blue-500 ring-opacity-20 bg-blue-50/30" 
-                : "border-gray-100 hover:border-gray-200 shadow-sm"
+                ? "bg-blue-50/30 dark:bg-blue-900/20 border-blue-500 ring-2 ring-blue-500 ring-opacity-20" 
+                : "bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700/50 hover:border-gray-200 dark:hover:border-slate-600 shadow-sm"
             )}
           >
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{subnet.name}</p>
-                <p className="text-sm font-mono text-gray-700">{subnet.network_address}/{subnet.prefix_length}</p>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{subnet.name}</p>
+                <p className="text-sm font-mono text-gray-700 dark:text-gray-300">{subnet.network_address}/{subnet.prefix_length}</p>
               </div>
               <div className="flex flex-col items-end">
                 <Badge variant={
@@ -227,7 +227,7 @@ export function LiveView() {
                   {subnet.scan_status || 'Idle'}
                 </Badge>
                 {subnet.last_scan && (
-                  <span className="text-[10px] text-gray-400 mt-1">
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
                     Last: {new Date(subnet.last_scan.endsWith('Z') || subnet.last_scan.includes('+') ? subnet.last_scan : `${subnet.last_scan}Z`).toLocaleTimeString()}
                   </span>
                 )}
@@ -255,30 +255,30 @@ export function LiveView() {
             <button onClick={() => {
               setIsModalOpen(false);
               setError(null);
-            }} className="px-4 py-2 text-gray-600">Cancel</button>
+            }} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Cancel</button>
             <button onClick={handleIpSubmit} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Assign IP</button>
           </>
         )}
       >
         <form className="space-y-4">
           {error && (
-            <div className="bg-red-50 border border-red-100 text-red-700 px-4 py-2 rounded-lg text-sm">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-400 px-4 py-2 rounded-lg text-sm">
               {error}
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">IP Address</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">IP Address</label>
             <input
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-900/50 dark:text-white"
               value={ipFormData.address}
               readOnly
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 dark:text-white"
               value={ipFormData.status}
               onChange={(e) => setIpFormData({...ipFormData, status: e.target.value})}
             >
@@ -288,9 +288,9 @@ export function LiveView() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Assign to Device (Optional)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign to Device (Optional)</label>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 dark:text-white"
               value={ipFormData.device_id}
               onChange={(e) => setIpFormData({...ipFormData, device_id: e.target.value})}
             >

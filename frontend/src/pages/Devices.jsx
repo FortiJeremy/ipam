@@ -118,7 +118,7 @@ export function Devices() {
       cell: (row) => (
         <div className="flex items-center gap-2">
           <Server className="h-4 w-4 text-gray-400" />
-          <span className="font-medium text-gray-900">{row.hostname}</span>
+          <span className="font-medium text-gray-900 dark:text-white font-semibold">{row.hostname}</span>
         </div>
       )
     },
@@ -180,8 +180,8 @@ export function Devices() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Devices</h1>
-          <p className="text-gray-500">Inventory of registered infrastructure</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Devices</h1>
+          <p className="text-gray-500 dark:text-gray-400">Inventory of registered infrastructure</p>
         </div>
         <button
           onClick={() => {
@@ -212,7 +212,7 @@ export function Devices() {
                 setIsModalOpen(false);
                 resetForm();
               }}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+              className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium"
             >
               Cancel
             </button>
@@ -227,27 +227,27 @@ export function Devices() {
       >
         <form className="space-y-4">
           {error && (
-            <div className="bg-red-50 border border-red-100 text-red-700 px-4 py-2 rounded-lg text-sm">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-400 px-4 py-2 rounded-lg text-sm">
               {error}
             </div>
           )}
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Hostname</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Hostname</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="e.g. srv-prod-01"
                 value={formData.hostname}
                 onChange={(e) => setFormData({...formData, hostname: e.target.value})}
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Primary IP Address</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Primary IP Address</label>
               <input
                 list="available-ips"
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
                 placeholder="Select or enter IP (e.g. 192.168.1.10)"
                 value={formData.ip_address}
                 onChange={(e) => setFormData({...formData, ip_address: e.target.value})}
@@ -261,14 +261,14 @@ export function Devices() {
                     </option>
                   ))}
               </datalist>
-              <p className="text-[10px] text-gray-500 mt-1 italic">
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 italic">
                 Linking an IP will automatically assign this device to that IP's subnet.
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Device Type</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Device Type</label>
               <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 value={formData.device_type}
                 onChange={(e) => setFormData({...formData, device_type: e.target.value})}
               >
@@ -280,39 +280,39 @@ export function Devices() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Manufacturer</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Manufacturer</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Dell, HP, etc."
                 value={formData.manufacturer}
                 onChange={(e) => setFormData({...formData, manufacturer: e.target.value})}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Model</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="PowerEdge R740, ProLiant, etc."
                 value={formData.model}
                 onChange={(e) => setFormData({...formData, model: e.target.value})}
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tags (Comma separated)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tags (Comma separated)</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="prod, web, linux"
                 value={formData.tags}
                 onChange={(e) => setFormData({...formData, tags: e.target.value})}
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
               <textarea
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 rows="3"
                 value={formData.notes}
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}

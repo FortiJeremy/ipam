@@ -164,18 +164,18 @@ export function SubnetDetail() {
       <div className="flex items-center gap-4">
         <button 
           onClick={() => navigate('/subnets')}
-          className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-gray-200 transition-all"
+          className="p-2 hover:bg-white dark:hover:bg-slate-800 rounded-lg border border-transparent hover:border-gray-200 dark:hover:border-slate-700 transition-all"
         >
-          <ArrowLeft className="h-5 w-5 text-gray-600" />
+          <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{subnet?.name}</h1>
-          <p className="text-gray-500">{subnet?.network_address}/{subnet?.prefix_length}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{subnet?.name}</h1>
+          <p className="text-gray-500 dark:text-gray-400">{subnet?.network_address}/{subnet?.prefix_length}</p>
         </div>
         <div className="flex-1"></div>
         <button 
           onClick={fetchData}
-          className="flex items-center gap-2 text-gray-600 px-4 py-2 hover:bg-white rounded-lg transition-colors"
+          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 px-4 py-2 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-colors border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
         </button>
@@ -193,32 +193,32 @@ export function SubnetDetail() {
           value={subnet?.stats?.assigned ?? 0} 
           icon={CheckCircle} 
           description="Inventory + Reserved"
-          className="border-green-100 bg-green-50/10"
+          className="border-green-100 bg-green-50/10 dark:border-green-900/30 dark:bg-green-900/10"
         />
         <StatsCard 
           title="Discovered" 
           value={subnet?.stats?.discovered ?? 0} 
           icon={Search} 
           description="Not yet identified"
-          className="border-blue-100 bg-blue-50/10"
+          className="border-blue-100 bg-blue-50/10 dark:border-blue-900/30 dark:bg-blue-900/10"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm space-y-4">
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Subnet Info</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Gateway</span>
-              <span className="text-sm font-medium">{subnet?.gateway || 'Not set'}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Gateway</span>
+              <span className="text-sm font-medium dark:text-slate-200">{subnet?.gateway || 'Not set'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">VLAN ID</span>
-              <span className="text-sm font-medium">{subnet?.vlan_id || 'N/A'}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">VLAN ID</span>
+              <span className="text-sm font-medium dark:text-slate-200">{subnet?.vlan_id || 'N/A'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Description</span>
-              <span className="text-sm font-medium">{subnet?.description || 'No description'}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Description</span>
+              <span className="text-sm font-medium dark:text-slate-200">{subnet?.description || 'No description'}</span>
             </div>
           </div>
         </div>
