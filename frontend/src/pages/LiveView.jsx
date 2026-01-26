@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, Shield, Clock, Search, Plus, Monitor } from 'lucide-react';
+import { Activity, Shield, Clock, Search, Plus, Monitor, Server } from 'lucide-react';
 import { DataTable } from '../components/DataTable';
 import { Badge } from '../components/Badge';
 import { Modal } from '../components/Modal';
@@ -15,12 +15,22 @@ export function LiveView() {
   const [selectedSubnetId, setSelectedSubnetId] = useState(null);
   const [hideAssigned, setHideAssigned] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
   const [error, setError] = useState(null);
   const [ipFormData, setIpFormData] = useState({
     address: '',
     status: 'ALLOCATED',
     device_id: '',
     subnet_id: ''
+  });
+  const [deviceFormData, setDeviceFormData] = useState({
+    hostname: '',
+    manufacturer: '',
+    model: '',
+    device_type: 'Server',
+    tags: '',
+    notes: '',
+    ip_address: ''
   });
 
   const fetchData = async () => {
@@ -65,6 +75,19 @@ export function LiveView() {
     setIsModalOpen(true);
   };
 
+  const handleCreateDevice = (ip) => {
+    setDeviceFormData({
+      hostname: ip.hostname || '',
+      manufacturer: '',
+      model: '',
+      device_type: 'Server',
+      tags: 'discovered',
+      notes: `Automatically discovered on ${new Date().toLocaleDateString()}`,
+      ip_address: ip.address
+    });
+    setIsDeviceModalOpen(true);
+  };
+
   const handleIpSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -86,6 +109,28 @@ export function LiveView() {
       }
     } catch (err) {
       console.error('Failed to assign IP:', err);
+    }
+  };
+
+  const handleDeviceSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      const res = await fetch('/api/devices/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(deviceFormData),
+      });
+      if (res.ok) {
+        setIsDeviceModalOpen(false);
+        fetchData();
+      } else {
+        const errorData = await res.json();
+        setError(errorData.detail || 'Failed to register device');
+      }
+    } catch (err) {
+      console.error('Failed to register device:', err);
+      setError('A network error occurred');
     }
   };
 
@@ -164,6 +209,22 @@ export function LiveView() {
           </div>
         );
       }
+    },
+    {
+      header: 'Actions',
+      cell: (row) => (
+        <div className="flex gap-2">
+          {row.status === 'DISCOVERED' && (
+            <button 
+              onClick={() => handleCreateDevice(row)}
+              className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+              title="Register as New Device"
+            >
+              <Plus className="h-3 w-3" /> Device
+            </button>
+          )}
+        </div>
+      )
     }
   ];
 
@@ -299,6 +360,97 @@ export function LiveView() {
                 <option key={d.id} value={d.id}>{d.hostname}</option>
               ))}
             </select>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={isDeviceModalOpen}
+        onClose={() => {
+          setIsDeviceModalOpen(false);
+          setError(null);
+        }}
+        title="Register New Device"
+        footer={(
+          <>
+            <button
+              onClick={() => {
+                setIsDeviceModalOpen(false);
+                setError(null);
+              }}
+              className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeviceSubmit}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors"
+            >
+              Register Device
+            </button>
+          </>
+        )}
+      >
+        <form className="space-y-4">
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-400 px-4 py-2 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Hostname</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g. srv-prod-01"
+                value={deviceFormData.hostname}
+                onChange={(e) => setDeviceFormData({...deviceFormData, hostname: e.target.value})}
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Primary IP Address</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg bg-gray-50 dark:bg-slate-900/50 font-mono"
+                value={deviceFormData.ip_address}
+                readOnly
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Device Type</label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                value={deviceFormData.device_type}
+                onChange={(e) => setDeviceFormData({...deviceFormData, device_type: e.target.value})}
+              >
+                <option>Server</option>
+                <option>Switch</option>
+                <option>Router</option>
+                <option>Workstation</option>
+                <option>IoT</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Manufacturer</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Dell, HP, etc."
+                value={deviceFormData.manufacturer}
+                onChange={(e) => setDeviceFormData({...deviceFormData, manufacturer: e.target.value})}
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tags (Comma separated)</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="prod, web, linux"
+                value={deviceFormData.tags}
+                onChange={(e) => setDeviceFormData({...deviceFormData, tags: e.target.value})}
+              />
+            </div>
           </div>
         </form>
       </Modal>
