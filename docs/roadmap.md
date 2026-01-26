@@ -36,3 +36,9 @@ This roadmap breaks the IPAM project into logical phases, ensuring a stable foun
 - [x] Optimize Docker image for size (Multi-stage builds).
 - [x] Finalize documentation (README, setup guide).
 - [ ] (Future) Integration with Technitium DNS or Firewall connectors.
+
+## Phase 7: Advanced Features & Utilities
+- [ ] **Import/Export Engine**: Bulk CSV import for subnets and device inventory; CSV export for reporting.
+- [ ] **Smart Allocation**: "Allocate Next Available IP" logic for rapid device registration.
+- [ ] **Proactive Brain**: Advanced polling including TCP/UDP port scanning to identify services on discovered hosts.
+- [ ] **Scheduled Scans**: UI-configurable scan frequencies and schedules per subnet.

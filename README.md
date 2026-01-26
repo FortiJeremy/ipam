@@ -44,10 +44,7 @@ The `docs/` folder contains detailed information about the project:
 - [Roadmap](docs/roadmap.md) - Current progress and future plans.
 
 ## Development Status
-We are currently in **Phase 6: Refinement & Deployment**.
-- [x] Optimized Docker images for size.
-- [x] Production-ready Nginx frontend serving.
-- [x] Automated backend discovery background worker.
+For the latest project status, planned features, and future enhancements, please refer to the [Development Roadmap](docs/roadmap.md).
 
 ## License
 MIT
