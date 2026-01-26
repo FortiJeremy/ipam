@@ -223,15 +223,15 @@ export function SubnetDetail() {
           </div>
         </div>
 
-        <div className="md:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="font-semibold text-gray-800">IP Assignments</h3>
+        <div className="md:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden transition-colors duration-200">
+          <div className="p-6 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center transition-colors duration-200">
+            <h3 className="font-semibold text-gray-800 dark:text-white">IP Assignments</h3>
             <button
                onClick={() => {
                  setIpFormData({ address: '', status: 'ALLOCATED', device_id: '' });
                  setIsModalOpen(true);
                }}
-               className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+               className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1.5"
             >
               <Plus className="h-4 w-4" /> Manual Assign
             </button>
@@ -256,31 +256,31 @@ export function SubnetDetail() {
             <button onClick={() => {
               setIsModalOpen(false);
               setError(null);
-            }} className="px-4 py-2 text-gray-600">Cancel</button>
+            }} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Cancel</button>
             <button onClick={handleIpSubmit} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">Assign IP</button>
           </>
         )}
       >
         <form className="space-y-4">
           {error && (
-            <div className="bg-red-50 border border-red-100 text-red-700 px-4 py-2 rounded-lg text-sm">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-400 px-4 py-2 rounded-lg text-sm">
               {error}
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">IP Address</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">IP Address</label>
             <input
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder={`${subnet?.network_address.split('.').slice(0,3).join('.')}.10`}
               value={ipFormData.address}
               onChange={(e) => setIpFormData({...ipFormData, address: e.target.value})}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
               value={ipFormData.status}
               onChange={(e) => setIpFormData({...ipFormData, status: e.target.value})}
             >
@@ -290,9 +290,9 @@ export function SubnetDetail() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Assign to Device (Optional)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign to Device (Optional)</label>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
               value={ipFormData.device_id}
               onChange={(e) => setIpFormData({...ipFormData, device_id: e.target.value})}
             >

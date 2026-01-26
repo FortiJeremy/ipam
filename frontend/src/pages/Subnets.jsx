@@ -124,7 +124,7 @@ export function Subnets() {
             {row.scan_status || 'Idle'}
           </Badge>
           {row.last_scan && (
-            <span className="text-[10px] text-gray-400 mt-1">
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
               {new Date(row.last_scan.endsWith('Z') || row.last_scan.includes('+') ? row.last_scan : `${row.last_scan}Z`).toLocaleString()}
             </span>
           )}
@@ -138,14 +138,14 @@ export function Subnets() {
         <div className="flex gap-2">
           <button 
             onClick={(e) => handleEdit(row, e)}
-            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+            className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors"
             title="Edit Subnet"
           >
             <Edit className="h-4 w-4" />
           </button>
           <button 
             onClick={(e) => handleDelete(row.id, e)}
-            className="p-1 text-red-600 hover:bg-red-50 rounded"
+            className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
             title="Delete Subnet"
           >
             <Trash2 className="h-4 w-4" />
