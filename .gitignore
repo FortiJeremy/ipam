@@ -168,6 +168,8 @@ dist-ssr/
 # Database
 backend/ipam.db
 backend/ipam.db-journal
+backend/data/*
+!backend/data/.gitkeep
 
 # OS files
 .DS_Store
