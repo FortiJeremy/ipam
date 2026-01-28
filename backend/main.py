@@ -13,7 +13,7 @@ from discovery import start_brain_loop
 # Create tables (Alembic should handle this in production, but good for quick dev)
 # models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="IPAM API", version="0.2.0")
+app = FastAPI(title="IPAM API", version="0.3.0")
 
 # Start discovery background thread
 @app.on_event("startup")
@@ -51,6 +51,11 @@ async def get_stats(db: Session = Depends(get_db)):
         "discovery_queue": online_count, # Showing online IPs for now
     }
 
+@app.post("/maintenance/validate")
+async def run_validation(db: Session = Depends(get_db)):
+    result = crud.validate_db(db)
+    return result
+
 # Subnet Endpoints
 @app.post("/subnets/", response_model=schemas.Subnet)
 def create_subnet(subnet: schemas.SubnetCreate, db: Session = Depends(get_db)):
@@ -67,6 +72,13 @@ def read_subnet(subnet_id: int, db: Session = Depends(get_db)):
     if db_subnet is None:
         raise HTTPException(status_code=404, detail="Subnet not found")
     return db_subnet
+
+@app.get("/subnets/{subnet_id}/next-available")
+def get_next_available_ip(subnet_id: int, pool_id: int = None, db: Session = Depends(get_db)):
+    ip = crud.find_next_available_ip(db, subnet_id, pool_id)
+    if not ip:
+        raise HTTPException(status_code=404, detail="No available IP addresses found in the specified range")
+    return {"address": ip}
 
 @app.put("/subnets/{subnet_id}", response_model=schemas.Subnet)
 def update_subnet(subnet_id: int, subnet: schemas.SubnetUpdate, db: Session = Depends(get_db)):
@@ -117,7 +129,7 @@ def assign_ip_to_device(device_id: int, assignment: schemas.IPAssignment, db: Se
     if not db_device:
         raise HTTPException(status_code=404, detail="Device not found")
     
-    db_ip = crud.link_ip_to_device(db, db_device, assignment.ip_address)
+    db_ip = crud.link_ip_to_device(db, db_device, assignment.ip_address, assignment.interface_name)
     if not db_ip:
         raise HTTPException(status_code=400, detail="Could not assign IP. Ensure it belongs to a known subnet.")
     
@@ -153,6 +165,36 @@ def delete_ip(ip_id: int, db: Session = Depends(get_db)):
     if db_ip is None:
         raise HTTPException(status_code=404, detail="IP address not found")
     return {"message": "IP address deleted"}
+
+# IP Range Endpoints
+@app.post("/ranges/", response_model=schemas.IPRange)
+def create_ip_range(ip_range: schemas.IPRangeCreate, db: Session = Depends(get_db)):
+    return crud.create_ip_range(db=db, ip_range=ip_range)
+
+@app.get("/ranges/", response_model=List[schemas.IPRange])
+def read_ip_ranges(subnet_id: int = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return crud.get_ip_ranges(db, subnet_id=subnet_id, skip=skip, limit=limit)
+
+@app.get("/ranges/{range_id}", response_model=schemas.IPRange)
+def read_ip_range(range_id: int, db: Session = Depends(get_db)):
+    db_range = crud.get_ip_range(db, ip_range_id=range_id)
+    if db_range is None:
+        raise HTTPException(status_code=404, detail="IP Range not found")
+    return db_range
+
+@app.put("/ranges/{range_id}", response_model=schemas.IPRange)
+def update_ip_range(range_id: int, ip_range: schemas.IPRangeUpdate, db: Session = Depends(get_db)):
+    db_range = crud.update_ip_range(db, ip_range_id=range_id, ip_range=ip_range)
+    if db_range is None:
+        raise HTTPException(status_code=404, detail="IP Range not found")
+    return db_range
+
+@app.delete("/ranges/{range_id}")
+def delete_ip_range(range_id: int, db: Session = Depends(get_db)):
+    db_range = crud.delete_ip_range(db, ip_range_id=range_id)
+    if db_range is None:
+        raise HTTPException(status_code=404, detail="IP Range not found")
+    return {"message": "IP Range deleted"}
 
 # Settings Endpoints
 @app.get("/settings")

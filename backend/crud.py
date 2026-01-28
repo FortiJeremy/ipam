@@ -6,7 +6,9 @@ import ipaddress
 from discovery import scan_subnet_range
 
 def _get_subnet_stats(db_subnet: models.Subnet):
-    total_ips = 2 ** (32 - db_subnet.prefix_length)
+    # Ensure prefix_length is within reasonable bounds for calculation
+    safe_prefix = max(0, min(32, db_subnet.prefix_length or 32))
+    total_ips = 2 ** (32 - safe_prefix)
     
     # Simple count of records in DB for this subnet
     assigned_count = 0
@@ -27,13 +29,15 @@ def _get_subnet_stats(db_subnet: models.Subnet):
     }
 
 def get_subnet(db: Session, subnet_id: int):
-    db_subnet = db.query(models.Subnet).filter(models.Subnet.id == subnet_id).first()
+    db_subnet = db.query(models.Subnet).options(
+        joinedload(models.Subnet.ip_ranges)
+    ).filter(models.Subnet.id == subnet_id).first()
     if db_subnet:
         db_subnet.stats = _get_subnet_stats(db_subnet)
     return db_subnet
 
 def get_subnets(db: Session, skip: int = 0, limit: int = 100):
-    subnets = db.query(models.Subnet).offset(skip).limit(limit).all()
+    subnets = db.query(models.Subnet).options(joinedload(models.Subnet.ip_ranges)).offset(skip).limit(limit).all()
     for s in subnets:
         s.stats = _get_subnet_stats(s)
     return subnets
@@ -53,10 +57,17 @@ def update_subnet(db: Session, subnet_id: int, subnet: schemas.SubnetUpdate):
     db_subnet = get_subnet(db, subnet_id)
     if db_subnet:
         update_data = subnet.model_dump(exclude_unset=True)
+        # Check if we are changing network parameters
+        revalidate = "network_address" in update_data or "prefix_length" in update_data
+        
         for key, value in update_data.items():
             setattr(db_subnet, key, value)
         db.commit()
         db.refresh(db_subnet)
+        
+        if revalidate:
+            validate_db(db)
+            
     return db_subnet
 
 def delete_subnet(db: Session, subnet_id: int):
@@ -65,6 +76,100 @@ def delete_subnet(db: Session, subnet_id: int):
         db.delete(db_subnet)
         db.commit()
     return db_subnet
+
+def validate_db(db: Session):
+    subnets = db.query(models.Subnet).all()
+    ips = db.query(models.IPAddress).all()
+    
+    moved_count = 0
+    deleted_count = 0
+    
+    # Store subnet networks for faster lookup
+    networks = []
+    for s in subnets:
+        try:
+            networks.append({
+                "id": s.id,
+                "network": ipaddress.ip_network(f"{s.network_address}/{s.prefix_length}", strict=False)
+            })
+        except Exception:
+            continue
+            
+    for ip_obj in ips:
+        try:
+            ip_addr = ipaddress.ip_address(ip_obj.address)
+        except Exception:
+            continue
+            
+        # Check current subnet
+        current_subnet = next((n for n in networks if n["id"] == ip_obj.subnet_id), None)
+        
+        if current_subnet and ip_addr in current_subnet["network"]:
+            # All good
+            continue
+            
+        # If not, find a new home
+        new_home = None
+        for n in networks:
+            if ip_addr in n["network"]:
+                new_home = n["id"]
+                break
+        
+        if new_home:
+            ip_obj.subnet_id = new_home
+            moved_count += 1
+        else:
+            # Doesn't belong to any subnet anymore
+            if ip_obj.status == models.IPStatus.DISCOVERED:
+                db.delete(ip_obj)
+                deleted_count += 1
+            else:
+                # For assigned IPs, keep record but unhook from current subnet
+                ip_obj.subnet_id = None
+                moved_count += 1
+    
+    db.commit()
+    return {"moved": moved_count, "deleted": deleted_count}
+
+def find_next_available_ip(db: Session, subnet_id: int, pool_id: int = None):
+    # Get subnet
+    subnet = db.query(models.Subnet).filter(models.Subnet.id == subnet_id).first()
+    if not subnet:
+        return None
+        
+    # Determine the range
+    if pool_id:
+        pool = db.query(models.IPRange).filter(models.IPRange.id == pool_id, models.IPRange.subnet_id == subnet_id).first()
+        if not pool:
+            return None
+        start_ip = ipaddress.ip_address(pool.start_ip)
+        end_ip = ipaddress.ip_address(pool.end_ip)
+    else:
+        network = ipaddress.ip_network(f"{subnet.network_address}/{subnet.prefix_length}", strict=False)
+        # Skip network and broadcast
+        if network.prefixlen < 31:
+            start_ip = network.network_address + 1
+            end_ip = network.broadcast_address - 1
+        else:
+            start_ip = network.network_address
+            end_ip = network.broadcast_address
+
+    # Fetch all occupied IPs in this subnet
+    # We convert to string for comparison or sort as ints
+    occupied_ips = db.query(models.IPAddress.address).filter(
+        models.IPAddress.subnet_id == subnet_id
+    ).all()
+    occupied_set = {ip[0] for ip in occupied_ips}
+    
+    # Iterate and find first hole
+    current = start_ip
+    while current <= end_ip:
+        curr_str = str(current)
+        if curr_str not in occupied_set:
+            return curr_str
+        current += 1
+        
+    return None
 
 # Device CRUD
 def get_device(db: Session, device_id: int):
@@ -77,7 +182,7 @@ def get_devices(db: Session, skip: int = 0, limit: int = 100):
         joinedload(models.Device.ip_addresses).joinedload(models.IPAddress.subnet)
     ).offset(skip).limit(limit).all()
 
-def link_ip_to_device(db: Session, db_device: models.Device, ip_addr: str):
+def link_ip_to_device(db: Session, db_device: models.Device, ip_addr: str, interface_name: str = None):
     if not ip_addr:
         return None
         
@@ -99,12 +204,15 @@ def link_ip_to_device(db: Session, db_device: models.Device, ip_addr: str):
                 address=ip_addr,
                 status=models.IPStatus.ALLOCATED,
                 subnet_id=target_subnet.id,
-                device_id=db_device.id
+                device_id=db_device.id,
+                interface_name=interface_name
             )
             db.add(db_ip)
     else:
         db_ip.device_id = db_device.id
         db_ip.status = models.IPStatus.ALLOCATED
+        if interface_name is not None:
+            db_ip.interface_name = interface_name
     
     db.commit()
     if db_ip:
@@ -202,6 +310,40 @@ def delete_ip_address(db: Session, ip_id: int):
         db.delete(db_ip)
         db.commit()
     return db_ip
+
+# IPRange CRUD
+def get_ip_range(db: Session, ip_range_id: int):
+    return db.query(models.IPRange).filter(models.IPRange.id == ip_range_id).first()
+
+def get_ip_ranges(db: Session, subnet_id: int = None, skip: int = 0, limit: int = 100):
+    query = db.query(models.IPRange)
+    if subnet_id:
+        query = query.filter(models.IPRange.subnet_id == subnet_id)
+    return query.offset(skip).limit(limit).all()
+
+def create_ip_range(db: Session, ip_range: schemas.IPRangeCreate):
+    db_ip_range = models.IPRange(**ip_range.model_dump())
+    db.add(db_ip_range)
+    db.commit()
+    db.refresh(db_ip_range)
+    return db_ip_range
+
+def update_ip_range(db: Session, ip_range_id: int, ip_range: schemas.IPRangeUpdate):
+    db_ip_range = get_ip_range(db, ip_range_id)
+    if db_ip_range:
+        update_data = ip_range.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(db_ip_range, key, value)
+        db.commit()
+        db.refresh(db_ip_range)
+    return db_ip_range
+
+def delete_ip_range(db: Session, ip_range_id: int):
+    db_ip_range = get_ip_range(db, ip_range_id)
+    if db_ip_range:
+        db.delete(db_ip_range)
+        db.commit()
+    return db_ip_range
 
 # Settings CRUD
 def get_settings(db: Session):

@@ -26,6 +26,7 @@ class Subnet(Base):
     scan_status = Column(String, default="Idle")
 
     ip_addresses = relationship("IPAddress", back_populates="subnet", cascade="all, delete-orphan")
+    ip_ranges = relationship("IPRange", back_populates="subnet", cascade="all, delete-orphan")
 
 class Device(Base):
     __tablename__ = "devices"
@@ -57,6 +58,19 @@ class IPAddress(Base):
 
     subnet = relationship("Subnet", back_populates="ip_addresses")
     device = relationship("Device", back_populates="ip_addresses")
+
+class IPRange(Base):
+    __tablename__ = "ip_ranges"
+
+    id = Column(Integer, primary_key=True, index=True)
+    subnet_id = Column(Integer, ForeignKey("subnets.id"))
+    name = Column(String, index=True)
+    start_ip = Column(String, index=True)
+    end_ip = Column(String, index=True)
+    purpose = Column(String) # DHCP, STATIC, etc.
+    description = Column(Text, nullable=True)
+
+    subnet = relationship("Subnet", back_populates="ip_ranges")
 
 class Setting(Base):
     __tablename__ = "settings"
