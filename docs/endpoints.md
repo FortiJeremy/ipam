@@ -44,7 +44,7 @@ Manage physical or virtual hosts.
 | `GET` | `/devices/{id}` | Retrieve specific device details. |
 | `PUT` | `/devices/{id}` | Update a device record. |
 | `DELETE` | `/devices/{id}` | Remove a device record. |
-| `POST` | `/devices/{id}/assign` | Assign an IP address to a device. |
+| `POST` | `/devices/{id}/assign` | Assign an IP address to a device with optional `interface_name`. |
 
 ### Device Schema (Simplified)
 - `hostname`: (string) e.g., "nas-01"
@@ -64,7 +64,7 @@ Manage individual IP assignments and status.
 | `GET` | `/ips/` | List IP addresses. Supports `subnet_id` filtering and pagination. |
 | `POST` | `/ips/` | Assign an IP address to a subnet and/or device. |
 | `GET` | `/ips/{id}` | Retrieve specific IP details. |
-| `PUT` | `/ips/{id}` | Update an IP status, MAC address, or device assignment. |
+| `PUT` | `/ips/{id}` | Update an IP status, MAC address, device assignment, or interface name. |
 | `DELETE` | `/ips/{id}` | Unregister an IP record. |
 
 ### IP Address Schema (Simplified)
@@ -74,6 +74,38 @@ Manage individual IP assignments and status.
 - `interface_name`: (string, optional) e.g., "eth0"
 - `subnet_id`: (int) Reference to the parent Subnet.
 - `device_id`: (int, optional) Reference to the assigned Device.
+
+---
+
+## IP Ranges (Pools)
+Manage logical groupings of IP addresses within a subnet (e.g., DHCP scopes).
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/ranges/` | List all IP ranges. Supports `subnet_id` filtering. |
+| `POST` | `/ranges/` | Create a new IP range. |
+| `GET` | `/ranges/{id}` | Retrieve details for a specific range. |
+| `PUT` | `/ranges/{id}` | Update an existing range. |
+| `DELETE` | `/ranges/{id}` | Remove a range. |
+
+### IP Range Schema (Simplified)
+- `name`: (string) e.g., "Guest WiFi Scope"
+- `start_ip`: (string) e.g., "192.168.1.100"
+- `end_ip`: (string) e.g., "192.168.1.200"
+- `purpose`: (string) e.g., "DHCP", "STATIC"
+- `description`: (string, optional)
+- `subnet_id`: (int) Reference to the parent Subnet.
+
+---
+
+## Provisioning & Maintenance
+Advanced automation and system health.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/subnets/{id}/next-available` | Find the first free numeric hole in a CIDR block or logical Pool. |
+| `POST` | `/maintenance/validate` | Re-align all IPs to their correct subnets based on CIDR boundaries. |
+| `DELETE` | `/maintenance/purge-discovered` | Clean up "Discovered" IPs that have fallen out of the last-seen window. |
 
 ---
 

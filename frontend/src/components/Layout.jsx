@@ -64,7 +64,7 @@ export function Layout({ children }) {
             {location.pathname === '/' ? 'Overview' : location.pathname.substring(1).replace('/', ' / ')}
           </h1>
           <div className="flex items-center gap-4">
-            <span className="text-xs font-medium text-gray-400 dark:text-slate-500 px-2 py-1 bg-gray-100 dark:bg-slate-800 rounded">v0.2.0</span>
+            <span className="text-xs font-medium text-gray-400 dark:text-slate-500 px-2 py-1 bg-gray-100 dark:bg-slate-800 rounded">v0.3.0</span>
           </div>
         </header>
 

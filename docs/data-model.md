@@ -24,6 +24,14 @@ A specific address within a Subnet.
 - **Last Seen**: Optional timestamp.
 - **Healthcheck Status**: Up / Down / Disabled
 
+### IP Range (Pool)
+A logical grouping of addresses within a Subnet.
+- **Name**: e.g. "DHCP Scope", "Reserved for Printers".
+- **Start IP**: Beginning of the range.
+- **End IP**: End of the range.
+- **Purpose**: e.g. `DHCP`, `STATIC`.
+- **Description**: Optional notes.
+
 ### Device
 A physical or virtual host.
 - **Hostname**: e.g., `nas-01`.

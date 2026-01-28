@@ -5,6 +5,12 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./backend/data:/app/data
+      - ./backend/migrations:/app/migrations
+      - ./backend/alembic.ini:/app/alembic.ini
+      - ./backend/main.py:/app/main.py
+      - ./backend/models.py:/app/models.py
+      - ./backend/schemas.py:/app/schemas.py
+      - ./backend/crud.py:/app/crud.py
     ports:
       - "8001:8000"
     environment:

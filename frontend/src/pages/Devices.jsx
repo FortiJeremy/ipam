@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Server, Trash2, Tag, Info, Edit } from 'lucide-react';
+import { Plus, Server, Trash2, Tag, Info, Edit, RefreshCw, Hash } from 'lucide-react';
 import { DataTable } from '../components/DataTable';
 import { Modal } from '../components/Modal';
 import { Badge } from '../components/Badge';
@@ -22,6 +22,12 @@ export function Devices() {
     ip_address: ''
   });
   const [error, setError] = useState(null);
+  
+  const [subnets, setSubnets] = useState([]);
+  const [autoAllocate, setAutoAllocate] = useState(true);
+  const [selectedSubnetId, setSelectedSubnetId] = useState('');
+  const [selectedPoolId, setSelectedPoolId] = useState('');
+  const [isAllocating, setIsAllocating] = useState(false);
 
   const resetForm = () => {
     setFormData({ 
@@ -36,18 +42,50 @@ export function Devices() {
     setEditingDevice(null);
     setError(null);
     setIsModalOpen(false);
+    setAutoAllocate(true);
+    setSelectedSubnetId('');
+    setSelectedPoolId('');
+  };
+
+  const handleAutoAllocate = async () => {
+    if (!selectedSubnetId) return;
+    setIsAllocating(true);
+    setError(null);
+    try {
+      let url = `/api/subnets/${selectedSubnetId}/next-available`;
+      if (selectedPoolId) url += `?pool_id=${selectedPoolId}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setFormData({ ...formData, ip_address: data.address });
+      } else {
+        const err = await res.json();
+        setError(err.detail || 'No IPs available in selected range');
+        setAutoAllocate(false);
+      }
+    } catch (err) {
+      setError('Connection error while allocating IP');
+    } finally {
+      setIsAllocating(false);
+    }
   };
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [devRes, ipRes] = await Promise.all([
+      const [devRes, ipRes, subRes] = await Promise.all([
         fetch('/api/devices/'),
-        fetch('/api/ips/')
+        fetch('/api/ips/'),
+        fetch('/api/subnets/')
       ]);
-      const [devData, ipData] = await Promise.all([devRes.json(), ipRes.json()]);
+      const [devData, ipData, subData] = await Promise.all([
+        devRes.json(), 
+        ipRes.json(),
+        subRes.json()
+      ]);
       setDevices(devData);
       setIps(ipData);
+      setSubnets(subData);
     } catch (err) {
       console.error('Failed to fetch data:', err);
     } finally {
@@ -89,6 +127,7 @@ export function Devices() {
   const handleEdit = (device, e) => {
     e.stopPropagation();
     setEditingDevice(device);
+    setAutoAllocate(false);
     setFormData({
       hostname: device.hostname || '',
       manufacturer: device.manufacturer || '',
@@ -242,29 +281,86 @@ export function Devices() {
                 onChange={(e) => setFormData({...formData, hostname: e.target.value})}
               />
             </div>
+
+            {!editingDevice && (
+              <div className="col-span-2 space-y-4">
+                <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/20">
+                  <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-3 flex items-center gap-2">
+                    <RefreshCw size={14} className={isAllocating ? 'animate-spin' : ''} />
+                    Auto-Allocate Primary IP (Optional)
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className="block text-xs font-medium text-blue-700 dark:text-blue-400 mb-1">Subnet</label>
+                      <select 
+                        value={selectedSubnetId}
+                        onChange={(e) => {
+                          setSelectedSubnetId(e.target.value);
+                          setSelectedPoolId('');
+                        }}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                      >
+                        <option value="">Choose Subnet...</option>
+                        {subnets.map(s => (
+                          <option key={s.id} value={s.id}>{s.name} ({s.network_address}/{s.prefix_length})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-blue-700 dark:text-blue-400 mb-1">Pool (Optional)</label>
+                      <select 
+                        disabled={!selectedSubnetId}
+                        value={selectedPoolId}
+                        onChange={(e) => setSelectedPoolId(e.target.value)}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-gray-900 dark:text-white disabled:opacity-50 focus:ring-2 focus:ring-blue-500 outline-none"
+                      >
+                        <option value="">Whole Subnet</option>
+                        {Array.isArray(subnets.find(s => s.id === parseInt(selectedSubnetId))?.ip_ranges) && 
+                          subnets.find(s => s.id === parseInt(selectedSubnetId)).ip_ranges.map(r => (
+                            <option key={r.id} value={r.id.toString()}>{r.name}</option>
+                          ))
+                        }
+                      </select>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAutoAllocate}
+                    disabled={!selectedSubnetId || isAllocating}
+                    className="w-full py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm"
+                  >
+                    {isAllocating ? 'FINDING AVAILABLE IP...' : 'FIND NEXT AVAILABLE IP'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Primary IP Address</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {editingDevice ? 'Manage IP (Go to detail page for more)' : 'Primary IP Address'}
+              </label>
               <input
                 list="available-ips"
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
-                placeholder="Select or enter IP (e.g. 192.168.1.10)"
+                disabled={editingDevice}
+                className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:opacity-50"
+                placeholder={editingDevice ? 'Go to Device Detail to manage IPs' : 'Enter IP manually or use helper above'}
                 value={formData.ip_address}
                 onChange={(e) => setFormData({...formData, ip_address: e.target.value})}
               />
-              <datalist id="available-ips">
-                {ips
-                  .filter(ip => !ip.device_id || (editingDevice && ip.device_id === editingDevice.id))
-                  .map(ip => (
-                    <option key={ip.id} value={ip.address}>
-                      {ip.address} ({ip.status})
-                    </option>
-                  ))}
-              </datalist>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 italic">
-                Linking an IP will automatically assign this device to that IP's subnet.
-              </p>
+              {!editingDevice && (
+                <datalist id="available-ips">
+                  {ips
+                    .filter(ip => !ip.device_id)
+                    .map(ip => (
+                      <option key={ip.id} value={ip.address}>
+                        {ip.address} ({ip.status})
+                      </option>
+                    ))}
+                </datalist>
+              )}
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Device Type</label>
               <select

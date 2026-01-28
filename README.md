@@ -4,9 +4,11 @@ A modern, fast, and automated IP Address Management (IPAM) tool with network dis
 
 ## Features
 - **Network Discovery**: Automatic scanning of subnets using Nmap and Scapy.
-- **Inventory Management**: Track subnets, IP assignments, and devices.
+- **Inventory Management**: Track subnets, IP assignments, and devices with multi-interface support.
+- **Auto-Allocation**: Intelligent "Find Next Available IP" engine for subnets and specific pools.
+- **Data Integrity**: Built-in validation tools to re-align IP records when network boundaries change.
 - **Health Monitoring**: Background ping checks to keep device status updated.
-- **Modern UI**: Clean, responsive dashboard built with React and Tailwind CSS.
+- **Modern UI**: Clean, responsive dashboard with native Dark Mode support.
 - **Dockerized**: Easy deployment with Docker Compose.
 
 ---

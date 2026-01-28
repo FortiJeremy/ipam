@@ -15,13 +15,14 @@ export function Subnets() {
     name: '',
     network_address: '',
     prefix_length: 24,
+    gateway: '',
     description: '',
     vlan_id: ''
   });
   const [error, setError] = useState(null);
 
   const resetForm = () => {
-    setFormData({ name: '', network_address: '', prefix_length: 24, description: '', vlan_id: '' });
+    setFormData({ name: '', network_address: '', prefix_length: 24, gateway: '', description: '', vlan_id: '' });
     setEditingSubnet(null);
     setError(null);
     setIsModalOpen(false);
@@ -82,6 +83,7 @@ export function Subnets() {
       name: subnet.name || '',
       network_address: subnet.network_address || '',
       prefix_length: subnet.prefix_length || 24,
+      gateway: subnet.gateway || '',
       description: subnet.description || '',
       vlan_id: subnet.vlan_id || ''
     });
@@ -112,6 +114,10 @@ export function Subnets() {
     { 
       header: 'VLAN', 
       cell: (row) => row.vlan_id ? <Badge variant="blue">{row.vlan_id}</Badge> : '-' 
+    },
+    {
+      header: 'Gateway',
+      cell: (row) => row.gateway || '-'
     },
     {
       header: 'Scan Status',
@@ -241,7 +247,17 @@ export function Subnets() {
                 onChange={(e) => setFormData({...formData, prefix_length: e.target.value})}
               />
             </div>
-            <div className="col-span-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Default Gateway (Optional)</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="10.0.0.1"
+                value={formData.gateway}
+                onChange={(e) => setFormData({...formData, gateway: e.target.value})}
+              />
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">VLAN ID (Optional)</label>
               <input
                 type="number"

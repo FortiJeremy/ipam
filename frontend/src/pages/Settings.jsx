@@ -15,6 +15,7 @@ export function Settings() {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [purgeDays, setPurgeDays] = useState(30);
   const [darkMode, setDarkMode] = useState(localStorage.getItem('theme') === 'dark');
+  const [validating, setValidating] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -83,6 +84,26 @@ export function Settings() {
       }
     } catch (error) {
       console.error('Error purging IPs:', error);
+    }
+  };
+
+  const handleValidate = async () => {
+    setValidating(true);
+    try {
+      const response = await fetch('/api/maintenance/validate', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert(`Validation complete!\n- Re-assigned/Orphaned: ${data.moved}\n- Deleted stale discovery: ${data.deleted}`);
+      } else {
+        alert('Validation failed.');
+      }
+    } catch (error) {
+      console.error('Error validating data:', error);
+      alert('Error connecting to server.');
+    } finally {
+      setValidating(false);
     }
   };
 
@@ -295,6 +316,28 @@ export function Settings() {
                   <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                     Removes ephemeral "Discovered" IPs that haven't been seen recently. 
                     Assigned IPs are never purged.
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Validate IP Assignments
+                  </label>
+                  <button 
+                    onClick={handleValidate}
+                    disabled={validating}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors text-sm font-medium disabled:opacity-50"
+                  >
+                    {validating ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Network size={16} />
+                    )}
+                    Run Data Validation
+                  </button>
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    Verifies that every IP address is assigned to the correct subnet based on its CIDR. 
+                    Useful after changing subnet prefix lengths or network addresses.
                   </p>
                 </div>
               </div>
